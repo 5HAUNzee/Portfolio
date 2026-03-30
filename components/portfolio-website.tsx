@@ -6,10 +6,11 @@ import { motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import arkhamBg from "@/assets/Bg.jpg";
-import batmanSignal from "@/assets/Batman.jpg";
+
 import trophyImage from "@/assets/trophy.jpg";
 import { ModelViewer } from "@/components/model-viewer";
 import { BatSignalCanvas } from "@/components/bat-signal-canvas";
+import TechStack from "@/components/tech-stack";
 
 export function PortfolioWebsite() {
   const bgCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -996,28 +997,6 @@ export function PortfolioWebsite() {
               at NIT Goa&apos;s Technathon</strong>. Like Batman - I work best at night, ship before dawn, and leave no bug
               alive.
             </p>
-            <div className="skills-block reveal rd2">
-              <p className="skills-title">Arsenal</p>
-              <div className="skills-row">
-                <span className="skill">React Native</span>
-                <span className="skill">Expo</span>
-                <span className="skill">JavaScript ES6+</span>
-                <span className="skill">TypeScript</span>
-              </div>
-              <div className="skills-row">
-                <span className="skill">Firebase</span>
-                <span className="skill">Node.js</span>
-                <span className="skill">Express.js</span>
-                <span className="skill">REST APIs</span>
-              </div>
-              <div className="skills-row">
-                <span className="skill">Python</span>
-                <span className="skill">Docker</span>
-                <span className="skill">Kubernetes</span>
-                <span className="skill">Git</span>
-                <span className="skill">Postman</span>
-              </div>
-            </div>
           </div>
           <div className="stats-panel reveal rd1">
             <div className="stat-row">
@@ -1160,6 +1139,28 @@ export function PortfolioWebsite() {
         </div>
       </section>
 
+      <section className="section arsenal-section" id="arsenal" style={{ paddingTop: 60 }}>
+        <div className="section-header reveal">
+          <span className="sec-num">03</span>
+          <div className="sec-line" />
+          <h2 className="sec-title sec-title-marquee" data-banner="TACTICAL ARSENAL" aria-label="Tactical Arsenal">
+            <span className="sec-title-marquee-track" aria-hidden="true">
+              <span>
+                Tactical <em>Arsenal</em>
+              </span>
+              <span>
+                Tactical <em>Arsenal</em>
+              </span>
+            </span>
+          </h2>
+          <div className="sec-line" />
+        </div>
+
+        <div className="reveal rd1">
+          <TechStack />
+        </div>
+      </section>
+
       <section className="section" id="achievements" style={{ paddingTop: 60 }}>
         <div className="comm-scene reveal">
           <div className="comm-scanline-el" />
@@ -1179,10 +1180,10 @@ export function PortfolioWebsite() {
           </div>
 
           <div className="comm-section-head">
-            <div className="comm-section-head-title comm-title-marquee" data-text="COMMENDATIONS" aria-label="Commendations">
+            <div className="comm-section-head-title comm-title-marquee" data-text="ACHIEVEMENTS" aria-label="Achievements">
                 <span className="comm-title-marquee-track" aria-hidden="true">
-                  <span>COMMENDATIONS</span>
-                  <span>COMMENDATIONS</span>
+                  <span>ACHIEVEMENTS</span>
+                  <span>ACHIEVEMENTS</span>
                 </span>
               </div>
             <div className="comm-section-head-sub">CLASSIFIED - LEVEL 9 CLEARANCE</div>
@@ -1273,74 +1274,66 @@ export function PortfolioWebsite() {
           </div>
 
           <div className="comm-section-head">
-            <div className="comm-section-head-title" data-text="CERTIFICATIONS">
-              CERTIFICATIONS
-            </div>
+            <div className="comm-section-head-title comm-title-marquee" data-text="CERTIFICATIONS" aria-label="Certifications">
+                <span className="comm-title-marquee-track" aria-hidden="true">
+                  <span>CERTIFICATIONS</span>
+                  <span>CERTIFICATIONS</span>
+                </span>
+              </div>
             <div className="comm-section-head-sub">CLASSIFIED - LEVEL 9 CLEARANCE</div>
             <div className="comm-boot-line">INITIALIZING BATCOMPUTER...</div>
           </div>
 
-          <div className="comm-grid">
-            {certificationCards.map((card, index) => (
-              <motion.article
-                key={card.id}
-                {...cardMotionProps}
-                className={`comm-card ${commendationPulseIndex === index ? "comm-card-pulse" : ""}`}
-                initial={{ opacity: 0, y: 30, scale: 0.96 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.5, delay: 0.1 + index * 0.12 }}
-              >
-                <div className="comm-corner comm-corner-tl" />
-                <div className="comm-corner comm-corner-tr" />
-                <div className="comm-corner comm-corner-bl" />
-                <div className="comm-corner comm-corner-br" />
-                <div className="comm-sweep" />
+          <div className="cert-carousel-wrap" aria-label="3D rotating certifications carousel">
+            <div className="cert-carousel" role="list">
+              {certificationCards.map((card, index) => (
+                <div
+                  key={card.id}
+                  className="cert-carousel-orbit"
+                  style={{
+                    transform: `translate(-50%, -50%) rotateY(${(360 / certificationCards.length) * index}deg) translateZ(clamp(220px, 30vw, 340px))`,
+                  }}
+                >
+                  <article role="listitem" className="comm-card cert-carousel-card">
+                    <div className="comm-corner comm-corner-tl" />
+                    <div className="comm-corner comm-corner-tr" />
+                    <div className="comm-corner comm-corner-bl" />
+                    <div className="comm-corner comm-corner-br" />
+                    <div className="comm-sweep" />
 
-                <div className="comm-card-id">
-                  <span className="comm-card-id-num">{card.id}</span>
+                    <div className="comm-card-id">
+                      <span className="comm-card-id-num">{card.id}</span>
+                    </div>
+
+                    <div className="comm-rank-bar-wrap">
+                      <div className="comm-rank-bar" style={{ width: `${card.rank}%` }} />
+                    </div>
+
+                    <div className="comm-card-icon-row">
+                      <div className="comm-hex-icon" aria-hidden="true">
+                        <svg width="32" height="32" viewBox="0 0 32 32">
+                          <polygon
+                            points="16,3 27,9.5 27,22.5 16,29 5,22.5 5,9.5"
+                            fill="rgba(250,199,117,0.08)"
+                            stroke="rgba(250,199,117,0.5)"
+                            strokeWidth="1"
+                          />
+                        </svg>
+                        <span className="comm-hi-char">{card.icon}</span>
+                      </div>
+                      <div className="comm-card-title">{card.title}</div>
+                    </div>
+
+                    <div className="comm-card-sub">{card.sub}</div>
+
+                    <div className="comm-card-bottom">
+                      <span className="comm-status-pill">{card.status}</span>
+                      <div className="comm-pulse-dot" />
+                    </div>
+                  </article>
                 </div>
-
-                <div className="comm-rank-bar-wrap">
-                  <div
-                    className="comm-rank-bar"
-                    style={{ animationDelay: `${0.6 + index * 0.12}s`, width: `${card.rank}%` }}
-                  />
-                </div>
-
-                <div className="comm-image-placeholder" role="img" aria-label="Trophy image placeholder">
-                  <Image
-                    src={trophyImage}
-                    alt="Trophy"
-                    className="comm-image-placeholder-img"
-                    fill
-                    sizes="(max-width: 900px) 84vw, 420px"
-                  />
-                </div>
-
-                <div className="comm-card-icon-row">
-                  <div className="comm-hex-icon" aria-hidden="true">
-                    <svg width="32" height="32" viewBox="0 0 32 32">
-                      <polygon
-                        points="16,3 27,9.5 27,22.5 16,29 5,22.5 5,9.5"
-                        fill="rgba(250,199,117,0.08)"
-                        stroke="rgba(250,199,117,0.5)"
-                        strokeWidth="1"
-                      />
-                    </svg>
-                    <span className="comm-hi-char">{card.icon}</span>
-                  </div>
-                  <div className="comm-card-title">{card.title}</div>
-                </div>
-
-                <div className="comm-card-sub">{card.sub}</div>
-
-                <div className="comm-card-bottom">
-                  <span className="comm-status-pill">{card.status}</span>
-                  <div className="comm-pulse-dot" />
-                </div>
-              </motion.article>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -1367,7 +1360,7 @@ export function PortfolioWebsite() {
         >
           <span className="contact-shell-batman-orb" aria-hidden="true" />
           <span className="contact-shell-batman-badge" aria-hidden="true">
-            <Image src={batmanSignal} alt="" className="contact-shell-batman" fill sizes="260px" />
+           
           </span>
 
           <p className="contact-kicker">Reach Out</p>
