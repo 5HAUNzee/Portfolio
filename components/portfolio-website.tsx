@@ -16,6 +16,8 @@ export function PortfolioWebsite() {
   const bgCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const navLinksRef = useRef<HTMLUListElement | null>(null);
   const contactShellRef = useRef<HTMLDivElement | null>(null);
+  const projectsGridRef = useRef<HTMLDivElement | null>(null);
+  const achievementsGridRef = useRef<HTMLDivElement | null>(null);
   const loaderLine = "Welcome to Arkham City...";
 
   const [isLoading, setIsLoading] = useState(true);
@@ -27,6 +29,7 @@ export function PortfolioWebsite() {
   const [navIndicator, setNavIndicator] = useState({ left: 0, width: 0, opacity: 0 });
   const [isSubmittingContact, setIsSubmittingContact] = useState(false);
   const [contactSubmitMessage, setContactSubmitMessage] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const commendationCards = [
     {
@@ -723,6 +726,61 @@ export function PortfolioWebsite() {
     };
   }, []);
 
+  useEffect(() => {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) return;
+
+    const scrollers = [projectsGridRef.current, achievementsGridRef.current].filter(
+      (node): node is HTMLDivElement => Boolean(node)
+    );
+    if (scrollers.length === 0) return;
+
+    let rafId = 0;
+    let paused = false;
+
+    const step = () => {
+      if (!paused) {
+        scrollers.forEach((node) => {
+          const maxScroll = node.scrollWidth - node.clientWidth;
+          if (maxScroll <= 0) return;
+
+          node.scrollLeft += 0.35;
+          if (node.scrollLeft >= maxScroll - 1) {
+            node.scrollLeft = 0;
+          }
+        });
+      }
+
+      rafId = window.requestAnimationFrame(step);
+    };
+
+    const onEnter = () => {
+      paused = true;
+    };
+    const onLeave = () => {
+      paused = false;
+    };
+
+    scrollers.forEach((node) => {
+      node.addEventListener("mouseenter", onEnter);
+      node.addEventListener("mouseleave", onLeave);
+      node.addEventListener("touchstart", onEnter, { passive: true });
+      node.addEventListener("touchend", onLeave);
+    });
+
+    rafId = window.requestAnimationFrame(step);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      scrollers.forEach((node) => {
+        node.removeEventListener("mouseenter", onEnter);
+        node.removeEventListener("mouseleave", onLeave);
+        node.removeEventListener("touchstart", onEnter);
+        node.removeEventListener("touchend", onLeave);
+      });
+    };
+  }, []);
+
   const handleContactSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isSubmittingContact) return;
@@ -806,34 +864,70 @@ export function PortfolioWebsite() {
           </svg>
           SHAUN D&apos;SOUZA
         </a>
-        <ul className="nav-links" ref={navLinksRef}>
+
+        <button
+          className="mobile-menu-toggle"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="Toggle menu"
+          aria-expanded={isMobileMenuOpen}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+
+        <ul className={`nav-links ${isMobileMenuOpen ? "mobile-open" : ""}`} ref={navLinksRef}>
           <li>
-            <a href="#about" className={activeSection === "about" ? "active" : undefined}>
+            <a
+              href="#about"
+              className={activeSection === "about" ? "active" : undefined}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
               About
             </a>
           </li>
           <li>
-            <a href="#projects" className={activeSection === "projects" ? "active" : undefined}>
+            <a
+              href="#projects"
+              className={activeSection === "projects" ? "active" : undefined}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
               Projects
             </a>
           </li>
           <li>
-            <a href="#achievements" className={activeSection === "achievements" ? "active" : undefined}>
+            <a
+              href="#achievements"
+              className={activeSection === "achievements" ? "active" : undefined}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
               Achievements
             </a>
           </li>
           <li>
-            <a href="#certifications" className={activeSection === "certifications" ? "active" : undefined}>
+            <a
+              href="#certifications"
+              className={activeSection === "certifications" ? "active" : undefined}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
               Certifications
             </a>
           </li>
           <li>
-            <a href="#arsenal" className={activeSection === "arsenal" ? "active" : undefined}>
+            <a
+              href="#arsenal"
+              className={activeSection === "arsenal" ? "active" : undefined}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
               Tech Stack
             </a>
           </li>
           <li>
-            <a href="#contact" className={activeSection === "contact" ? "active" : undefined}>
+            <a
+              href="#contact"
+              className={activeSection === "contact" ? "active" : undefined}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
               Contact
             </a>
           </li>
@@ -847,6 +941,14 @@ export function PortfolioWebsite() {
             }}
           />
         </ul>
+
+        {isMobileMenuOpen && (
+          <div
+            className="mobile-menu-overlay"
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+        )}
       </nav>
 
       <section id="hero">
@@ -1017,7 +1119,7 @@ export function PortfolioWebsite() {
           </h2>
           <div className="sec-line" />
         </div>
-        <div className="projects-grid">
+        <div className="projects-grid" ref={projectsGridRef}>
           <motion.div {...cardMotionProps} className="project-card card-motion featured reveal">
             <canvas className="project-canvas" id="pc1" data-type="wave" />
             <div className="project-body">
@@ -1161,7 +1263,7 @@ export function PortfolioWebsite() {
             <div className="comm-boot-line">INITIALIZING BATCOMPUTER...</div>
           </div>
 
-          <div className="comm-grid">
+          <div className="comm-grid" ref={achievementsGridRef}>
             {commendationCards.map((card, index) => (
               <motion.article
                 key={card.id}
