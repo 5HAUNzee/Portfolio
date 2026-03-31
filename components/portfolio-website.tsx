@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import gsap from "gsap";
@@ -16,8 +16,6 @@ export function PortfolioWebsite() {
   const bgCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const navLinksRef = useRef<HTMLUListElement | null>(null);
   const contactShellRef = useRef<HTMLDivElement | null>(null);
-  const thunderAudioCtxRef = useRef<AudioContext | null>(null);
-  const lastThunderAtRef = useRef(0);
   const loaderLine = "Welcome to Arkham City...";
 
   const [isLoading, setIsLoading] = useState(true);
@@ -27,6 +25,8 @@ export function PortfolioWebsite() {
   const [lightningFlash, setLightningFlash] = useState(0);
   const [activeSection, setActiveSection] = useState("about");
   const [navIndicator, setNavIndicator] = useState({ left: 0, width: 0, opacity: 0 });
+  const [isSubmittingContact, setIsSubmittingContact] = useState(false);
+  const [contactSubmitMessage, setContactSubmitMessage] = useState<string | null>(null);
 
   const commendationCards = [
     {
@@ -172,84 +172,6 @@ export function PortfolioWebsite() {
   }, []);
 
   useEffect(() => {
-    const unlockAudio = () => {
-      const AudioCtx = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (!AudioCtx) return;
-
-      if (!thunderAudioCtxRef.current) {
-        thunderAudioCtxRef.current = new AudioCtx();
-      }
-
-      if (thunderAudioCtxRef.current.state !== "running") {
-        void thunderAudioCtxRef.current.resume();
-      }
-    };
-
-    window.addEventListener("pointerdown", unlockAudio, { passive: true });
-    window.addEventListener("keydown", unlockAudio);
-
-    return () => {
-      window.removeEventListener("pointerdown", unlockAudio);
-      window.removeEventListener("keydown", unlockAudio);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (lightningFlash < 0.72) return;
-
-    const now = performance.now();
-    if (now - lastThunderAtRef.current < 900) return;
-    lastThunderAtRef.current = now;
-
-    const ctx = thunderAudioCtxRef.current;
-    if (!ctx || ctx.state !== "running") return;
-
-    const startAt = ctx.currentTime + 0.02;
-
-    const rumbleDuration = 1.8;
-    const rumbleBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * rumbleDuration), ctx.sampleRate);
-    const rumbleData = rumbleBuffer.getChannelData(0);
-    for (let i = 0; i < rumbleData.length; i += 1) {
-      const decay = 1 - i / rumbleData.length;
-      rumbleData[i] = (Math.random() * 2 - 1) * decay * decay;
-    }
-
-    const rumbleSource = ctx.createBufferSource();
-    rumbleSource.buffer = rumbleBuffer;
-
-    const rumbleFilter = ctx.createBiquadFilter();
-    rumbleFilter.type = "lowpass";
-    rumbleFilter.frequency.setValueAtTime(340, startAt);
-    rumbleFilter.Q.setValueAtTime(0.9, startAt);
-
-    const rumbleGain = ctx.createGain();
-    rumbleGain.gain.setValueAtTime(0.0001, startAt);
-    rumbleGain.gain.linearRampToValueAtTime(0.16, startAt + 0.07);
-    rumbleGain.gain.exponentialRampToValueAtTime(0.001, startAt + 1.6);
-
-    rumbleSource.connect(rumbleFilter);
-    rumbleFilter.connect(rumbleGain);
-    rumbleGain.connect(ctx.destination);
-    rumbleSource.start(startAt);
-    rumbleSource.stop(startAt + rumbleDuration);
-
-    const crackOsc = ctx.createOscillator();
-    crackOsc.type = "triangle";
-    crackOsc.frequency.setValueAtTime(160, startAt);
-    crackOsc.frequency.exponentialRampToValueAtTime(46, startAt + 0.22);
-
-    const crackGain = ctx.createGain();
-    crackGain.gain.setValueAtTime(0.0001, startAt);
-    crackGain.gain.linearRampToValueAtTime(0.07, startAt + 0.015);
-    crackGain.gain.exponentialRampToValueAtTime(0.001, startAt + 0.34);
-
-    crackOsc.connect(crackGain);
-    crackGain.connect(ctx.destination);
-    crackOsc.start(startAt);
-    crackOsc.stop(startAt + 0.36);
-  }, [lightningFlash]);
-
-  useEffect(() => {
     let isActive = true;
     let sequenceTimers: number[] = [];
     let nextFlashTimer = 0;
@@ -329,7 +251,7 @@ export function PortfolioWebsite() {
   }, [loaderLine]);
 
   useEffect(() => {
-    const trackedSections = ["about", "projects", "achievements", "certifications", "contact"];
+    const trackedSections = ["about", "projects", "arsenal", "achievements", "certifications", "contact"];
 
     const updateIndicator = () => {
       const navList = navLinksRef.current;
@@ -801,6 +723,50 @@ export function PortfolioWebsite() {
     };
   }, []);
 
+  const handleContactSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (isSubmittingContact) return;
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    const payload = {
+      name: String(formData.get("name") ?? "").trim(),
+      email: String(formData.get("email") ?? "").trim(),
+      message: String(formData.get("message") ?? "").trim(),
+    };
+
+    if (!payload.name || !payload.email || !payload.message) {
+      setContactSubmitMessage("Please fill out all fields before transmitting the signal.");
+      return;
+    }
+
+    try {
+      setIsSubmittingContact(true);
+      setContactSubmitMessage(null);
+
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result?.error || "Failed to transmit signal");
+      }
+
+      form.reset();
+      setContactSubmitMessage("Signal transmitted successfully. I will get back to you soon.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to transmit signal";
+      setContactSubmitMessage(message);
+    } finally {
+      setIsSubmittingContact(false);
+    }
+  };
+
   return (
     <>
       {isLoading && (
@@ -859,6 +825,11 @@ export function PortfolioWebsite() {
           <li>
             <a href="#certifications" className={activeSection === "certifications" ? "active" : undefined}>
               Certifications
+            </a>
+          </li>
+          <li>
+            <a href="#arsenal" className={activeSection === "arsenal" ? "active" : undefined}>
+              Tech Stack
             </a>
           </li>
           <li>
@@ -1373,7 +1344,7 @@ export function PortfolioWebsite() {
           <p className="contact-subtext">Got a mission, idea, or question? Send the signal.</p>
 
           <div className="contact-panels">
-            <form className="contact-form" onSubmit={(e) => e.preventDefault()}>
+            <form className="contact-form" onSubmit={handleContactSubmit}>
               <div className="contact-field">
                 <label htmlFor="contact-name">Name</label>
                 <input id="contact-name" name="name" type="text" autoComplete="name" required />
@@ -1389,9 +1360,15 @@ export function PortfolioWebsite() {
                 <textarea id="contact-message" name="message" rows={5} required />
               </div>
 
-              <button type="submit" className="contact-submit">
+              <button type="submit" className="contact-submit" disabled={isSubmittingContact}>
                 <span className="contact-submit-label">Transmit Signal</span>
               </button>
+
+              {contactSubmitMessage ? (
+                <p className="contact-submit-feedback" role="status" aria-live="polite">
+                  {contactSubmitMessage}
+                </p>
+              ) : null}
             </form>
 
             <div className="contact-legacy">

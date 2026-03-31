@@ -1981,6 +1981,19 @@ nav::after {
   outline-offset: 3px;
 }
 
+.contact-submit:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.contact-submit-feedback {
+  margin: 0.7rem 0 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  color: rgba(245, 221, 176, 0.88);
+}
+
 .contact-legacy {
   position: relative;
   z-index: 1;
