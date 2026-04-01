@@ -16,8 +16,6 @@ export function PortfolioWebsite() {
   const bgCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const navLinksRef = useRef<HTMLUListElement | null>(null);
   const contactShellRef = useRef<HTMLDivElement | null>(null);
-  const projectsGridRef = useRef<HTMLDivElement | null>(null);
-  const achievementsGridRef = useRef<HTMLDivElement | null>(null);
   const loaderLine = "Welcome to Arkham City...";
 
   const [isLoading, setIsLoading] = useState(true);
@@ -114,6 +112,56 @@ export function PortfolioWebsite() {
       sub: "Cisco · Security Operations & Networking",
       status: "CONFIRMED",
       rank: 89,
+    },
+  ];
+
+  const projectCards = [
+    {
+      id: "project-01",
+      number: "01 · LIVE ON PLAY STORE",
+      name: "IBS Buddy - Gut Hypnotherapy App",
+      description:
+        "Designed, developed, and deployed a live healthcare app on the Google Play Store for users managing Irritable Bowel Syndrome. Sole developer responsible for architecture, Firebase integration, and full Play Store submission. Focused on intuitive UX and guided audio content delivery with a calming interface.",
+      tags: ["React Native", "Firebase", "Google Play Store", "UX Design"],
+      linkLabel: "Play Store ↗",
+      canvasType: "wave" as const,
+      featured: true,
+      revealClass: "reveal",
+    },
+    {
+      id: "project-02",
+      number: "02 · GITHUB",
+      name: "Mentify",
+      description:
+        "Digitised the semester form submission process for college students, replacing paper-based workflows. Automated validation and digital record-keeping reduced administrative overhead and improved submission accuracy.",
+      tags: ["React Native", "Firebase BaaS", "Cloudinary"],
+      linkLabel: "GitHub ↗",
+      canvasType: "grid" as const,
+      featured: false,
+      revealClass: "reveal rd1",
+    },
+    {
+      id: "project-03",
+      number: "03 · GITHUB",
+      name: "Gamified Tourism Platform",
+      description:
+        "Gamified tourism platform with badges, points, and leaderboards. Real-time SOS emergency feature with GPS location sharing. Firebase Realtime DB for live leaderboard sync across concurrent users.",
+      tags: ["React Native", "Firebase Realtime DB", "Expo", "GPS"],
+      linkLabel: "GitHub ↗",
+      canvasType: "particles" as const,
+      featured: false,
+      revealClass: "reveal rd2",
+    },
+    {
+      id: "project-04",
+      number: "04 · NATIONAL RECOGNITION",
+      name: "Smart Baby Monitoring System",
+      description:
+        "Intelligent infant monitoring system integrating sensor data with a mobile-accessible cloud dashboard. Recognised at national-level innovation competitions across India for innovative design and real-world impact.",
+      tags: ["IoT", "Embedded Systems", "Cloud", "Mobile Dashboard"],
+      canvasType: "circuit" as const,
+      featured: false,
+      revealClass: "reveal rd1",
     },
   ];
 
@@ -476,9 +524,7 @@ export function PortfolioWebsite() {
 
     const pcCleanups: Array<() => void> = [];
 
-    const initPC = (id: string, type: "wave" | "grid" | "particles" | "circuit") => {
-      const c = document.getElementById(id) as HTMLCanvasElement | null;
-      if (!c) return;
+    const initPC = (c: HTMLCanvasElement, type: "wave" | "grid" | "particles" | "circuit") => {
       const ctx = c.getContext("2d");
       if (!ctx) return;
 
@@ -648,10 +694,13 @@ export function PortfolioWebsite() {
       });
     };
 
-    initPC("pc1", "wave");
-    initPC("pc2", "grid");
-    initPC("pc3", "particles");
-    initPC("pc4", "circuit");
+    const projectCanvases = Array.from(document.querySelectorAll<HTMLCanvasElement>(".project-canvas[data-type]"));
+    projectCanvases.forEach((canvas) => {
+      const canvasType = canvas.dataset.type;
+      if (canvasType === "wave" || canvasType === "grid" || canvasType === "particles" || canvasType === "circuit") {
+        initPC(canvas, canvasType);
+      }
+    });
 
     const obs = new IntersectionObserver(
       (entries) => {
@@ -723,61 +772,6 @@ export function PortfolioWebsite() {
       obs.disconnect();
       co.disconnect();
       countCleanups.forEach((fn) => fn());
-    };
-  }, []);
-
-  useEffect(() => {
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduceMotion) return;
-
-    const scrollers = [projectsGridRef.current, achievementsGridRef.current].filter(
-      (node): node is HTMLDivElement => Boolean(node)
-    );
-    if (scrollers.length === 0) return;
-
-    let rafId = 0;
-    let paused = false;
-
-    const step = () => {
-      if (!paused) {
-        scrollers.forEach((node) => {
-          const maxScroll = node.scrollWidth - node.clientWidth;
-          if (maxScroll <= 0) return;
-
-          node.scrollLeft += 0.35;
-          if (node.scrollLeft >= maxScroll - 1) {
-            node.scrollLeft = 0;
-          }
-        });
-      }
-
-      rafId = window.requestAnimationFrame(step);
-    };
-
-    const onEnter = () => {
-      paused = true;
-    };
-    const onLeave = () => {
-      paused = false;
-    };
-
-    scrollers.forEach((node) => {
-      node.addEventListener("mouseenter", onEnter);
-      node.addEventListener("mouseleave", onLeave);
-      node.addEventListener("touchstart", onEnter, { passive: true });
-      node.addEventListener("touchend", onLeave);
-    });
-
-    rafId = window.requestAnimationFrame(step);
-
-    return () => {
-      window.cancelAnimationFrame(rafId);
-      scrollers.forEach((node) => {
-        node.removeEventListener("mouseenter", onEnter);
-        node.removeEventListener("mouseleave", onLeave);
-        node.removeEventListener("touchstart", onEnter);
-        node.removeEventListener("touchend", onLeave);
-      });
     };
   }, []);
 
@@ -1119,96 +1113,40 @@ export function PortfolioWebsite() {
           </h2>
           <div className="sec-line" />
         </div>
-        <div className="projects-grid" ref={projectsGridRef}>
-          <motion.div {...cardMotionProps} className="project-card card-motion featured reveal">
-            <canvas className="project-canvas" id="pc1" data-type="wave" />
-            <div className="project-body">
-              <p className="proj-num">01 · LIVE ON PLAY STORE</p>
-              <h3 className="proj-name">IBS Buddy - Gut Hypnotherapy App</h3>
-              <p className="proj-desc">
-                Designed, developed, and deployed a live healthcare app on the Google Play Store for users managing
-                Irritable Bowel Syndrome. Sole developer responsible for architecture, Firebase integration, and full
-                Play Store submission. Focused on intuitive UX and guided audio content delivery with a calming
-                interface.
-              </p>
-              <div className="proj-tags">
-                <span className="proj-tag">React Native</span>
-                <span className="proj-tag">Firebase</span>
-                <span className="proj-tag">Google Play Store</span>
-                <span className="proj-tag">UX Design</span>
-              </div>
-              <div className="proj-links">
-                <a href="#" className="proj-link">
-                  Play Store ↗
-                </a>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div {...cardMotionProps} className="project-card card-motion reveal rd1">
-            <canvas className="project-canvas" id="pc2" data-type="grid" />
-            <div className="project-body">
-              <p className="proj-num">02 · GITHUB</p>
-              <h3 className="proj-name">Mentify</h3>
-              <p className="proj-desc">
-                Digitised the semester form submission process for college students, replacing paper-based workflows.
-                Automated validation and digital record-keeping reduced administrative overhead and improved submission
-                accuracy.
-              </p>
-              <div className="proj-tags">
-                <span className="proj-tag">React Native</span>
-                <span className="proj-tag">Firebase BaaS</span>
-                <span className="proj-tag">Cloudinary</span>
-              </div>
-              <div className="proj-links">
-                <a href="#" className="proj-link">
-                  GitHub ↗
-                </a>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div {...cardMotionProps} className="project-card card-motion reveal rd2">
-            <canvas className="project-canvas" id="pc3" data-type="particles" />
-            <div className="project-body">
-              <p className="proj-num">03 · GITHUB</p>
-              <h3 className="proj-name">Gamified Tourism Platform</h3>
-              <p className="proj-desc">
-                Gamified tourism platform with badges, points, and leaderboards. Real-time SOS emergency feature with
-                GPS location sharing. Firebase Realtime DB for live leaderboard sync across concurrent users.
-              </p>
-              <div className="proj-tags">
-                <span className="proj-tag">React Native</span>
-                <span className="proj-tag">Firebase Realtime DB</span>
-                <span className="proj-tag">Expo</span>
-                <span className="proj-tag">GPS</span>
-              </div>
-              <div className="proj-links">
-                <a href="#" className="proj-link">
-                  GitHub ↗
-                </a>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div {...cardMotionProps} className="project-card card-motion reveal rd1">
-            <canvas className="project-canvas" id="pc4" data-type="circuit" />
-            <div className="project-body">
-              <p className="proj-num">04 · NATIONAL RECOGNITION</p>
-              <h3 className="proj-name">Smart Baby Monitoring System</h3>
-              <p className="proj-desc">
-                Intelligent infant monitoring system integrating sensor data with a mobile-accessible cloud dashboard.
-                Recognised at national-level innovation competitions across India for innovative design and real-world
-                impact.
-              </p>
-              <div className="proj-tags">
-                <span className="proj-tag">IoT</span>
-                <span className="proj-tag">Embedded Systems</span>
-                <span className="proj-tag">Cloud</span>
-                <span className="proj-tag">Mobile Dashboard</span>
-              </div>
-            </div>
-          </motion.div>
+        <div className="projects-grid">
+          <div className="projects-grid-track">
+            {[0, 1].flatMap((loopIndex) =>
+              projectCards.map((project) => (
+                <motion.div
+                  key={`${project.id}-loop-${loopIndex}`}
+                  {...cardMotionProps}
+                  className={`project-card card-motion ${project.featured ? "featured" : ""} ${project.revealClass}`}
+                  aria-hidden={loopIndex === 1}
+                >
+                  <canvas className="project-canvas" data-type={project.canvasType} />
+                  <div className="project-body">
+                    <p className="proj-num">{project.number}</p>
+                    <h3 className="proj-name">{project.name}</h3>
+                    <p className="proj-desc">{project.description}</p>
+                    <div className="proj-tags">
+                      {project.tags.map((tag) => (
+                        <span key={`${project.id}-${tag}`} className="proj-tag">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                    {project.linkLabel ? (
+                      <div className="proj-links">
+                        <a href="#" className="proj-link" tabIndex={loopIndex === 1 ? -1 : undefined}>
+                          {project.linkLabel}
+                        </a>
+                      </div>
+                    ) : null}
+                  </div>
+                </motion.div>
+              ))
+            )}
+          </div>
         </div>
       </section>
 
@@ -1263,67 +1201,75 @@ export function PortfolioWebsite() {
             <div className="comm-boot-line">INITIALIZING BATCOMPUTER...</div>
           </div>
 
-          <div className="comm-grid" ref={achievementsGridRef}>
-            {commendationCards.map((card, index) => (
-              <motion.article
-                key={card.id}
-                {...cardMotionProps}
-                className={`comm-card ${commendationPulseIndex === index ? "comm-card-pulse" : ""}`}
-                initial={{ opacity: 0, y: 30, scale: 0.96 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.5, delay: 0.1 + index * 0.12 }}
-              >
-                <div className="comm-corner comm-corner-tl" />
-                <div className="comm-corner comm-corner-tr" />
-                <div className="comm-corner comm-corner-bl" />
-                <div className="comm-corner comm-corner-br" />
-                <div className="comm-sweep" />
+          <div className="comm-grid">
+            <div className="comm-grid-track">
+              {[0, 1].flatMap((loopIndex) =>
+                commendationCards.map((card, index) => {
+                  const sequenceIndex = loopIndex * commendationCards.length + index;
+                  return (
+                    <motion.article
+                      key={`${card.id}-loop-${loopIndex}`}
+                      {...cardMotionProps}
+                      className={`comm-card ${commendationPulseIndex === index ? "comm-card-pulse" : ""}`}
+                      initial={{ opacity: 0, y: 30, scale: 0.96 }}
+                      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.5, delay: 0.1 + sequenceIndex * 0.08 }}
+                      aria-hidden={loopIndex === 1}
+                    >
+                      <div className="comm-corner comm-corner-tl" />
+                      <div className="comm-corner comm-corner-tr" />
+                      <div className="comm-corner comm-corner-bl" />
+                      <div className="comm-corner comm-corner-br" />
+                      <div className="comm-sweep" />
 
-                <div className="comm-card-id">
-                  <span className="comm-card-id-num">{card.id}</span>
-                </div>
+                      <div className="comm-card-id">
+                        <span className="comm-card-id-num">{card.id}</span>
+                      </div>
 
-                <div className="comm-rank-bar-wrap">
-                  <div
-                    className="comm-rank-bar"
-                    style={{ animationDelay: `${0.6 + index * 0.12}s`, width: `${card.rank}%` }}
-                  />
-                </div>
+                      <div className="comm-rank-bar-wrap">
+                        <div
+                          className="comm-rank-bar"
+                          style={{ animationDelay: `${0.6 + sequenceIndex * 0.08}s`, width: `${card.rank}%` }}
+                        />
+                      </div>
 
-                <div className="comm-image-placeholder" role="img" aria-label="Trophy image placeholder">
-                  <Image
-                    src={trophyImage}
-                    alt="Trophy"
-                    className="comm-image-placeholder-img"
-                    fill
-                    sizes="(max-width: 900px) 84vw, 420px"
-                  />
-                </div>
+                      <div className="comm-image-placeholder" role="img" aria-label="Trophy image placeholder">
+                        <Image
+                          src={trophyImage}
+                          alt="Trophy"
+                          className="comm-image-placeholder-img"
+                          fill
+                          sizes="(max-width: 900px) 84vw, 420px"
+                        />
+                      </div>
 
-                <div className="comm-card-icon-row">
-                  <div className="comm-hex-icon" aria-hidden="true">
-                    <svg width="32" height="32" viewBox="0 0 32 32">
-                      <polygon
-                        points="16,3 27,9.5 27,22.5 16,29 5,22.5 5,9.5"
-                        fill="rgba(250,199,117,0.08)"
-                        stroke="rgba(250,199,117,0.5)"
-                        strokeWidth="1"
-                      />
-                    </svg>
-                    <span className="comm-hi-char">{card.icon}</span>
-                  </div>
-                  <div className="comm-card-title">{card.title}</div>
-                </div>
+                      <div className="comm-card-icon-row">
+                        <div className="comm-hex-icon" aria-hidden="true">
+                          <svg width="32" height="32" viewBox="0 0 32 32">
+                            <polygon
+                              points="16,3 27,9.5 27,22.5 16,29 5,22.5 5,9.5"
+                              fill="rgba(250,199,117,0.08)"
+                              stroke="rgba(250,199,117,0.5)"
+                              strokeWidth="1"
+                            />
+                          </svg>
+                          <span className="comm-hi-char">{card.icon}</span>
+                        </div>
+                        <div className="comm-card-title">{card.title}</div>
+                      </div>
 
-                <div className="comm-card-sub">{card.sub}</div>
+                      <div className="comm-card-sub">{card.sub}</div>
 
-                <div className="comm-card-bottom">
-                  <span className="comm-status-pill">{card.status}</span>
-                  <div className="comm-pulse-dot" />
-                </div>
-              </motion.article>
-            ))}
+                      <div className="comm-card-bottom">
+                        <span className="comm-status-pill">{card.status}</span>
+                        <div className="comm-pulse-dot" />
+                      </div>
+                    </motion.article>
+                  );
+                })
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -1518,7 +1464,7 @@ export function PortfolioWebsite() {
       </section>
 
       <footer>
-        <span>© 2025 Shaun D&apos;Souza - Goa College of Engineering · Graduating 2027</span>
+        <span>© 2026 Shaun D&apos;Souza - Goa College of Engineering · Graduating 2027</span>
         <span style={{ color: "var(--yellow)" }}>I AM VENGEANCE. I AM THE CODE.</span>
       </footer>
     </>
